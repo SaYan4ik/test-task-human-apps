@@ -40,7 +40,11 @@ final class ImageProcessor: ImageProcessorProtocol {
             return nil
         }
         
-        return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+        return UIImage(
+            cgImage: cgImage,
+            scale: image.scale,
+            orientation: image.imageOrientation
+        )
     }
 }
 

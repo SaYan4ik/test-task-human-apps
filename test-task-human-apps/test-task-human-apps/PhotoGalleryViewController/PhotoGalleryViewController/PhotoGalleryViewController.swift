@@ -41,7 +41,10 @@ final class PhotoGalleryViewController: UIViewController {
         label.text = "Add new photo \n Tap +"
         label.textAlignment = .center
         label.numberOfLines = 0
-        label.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        label.font = UIFont.systemFont(
+            ofSize: 18,
+            weight: .medium
+        )
         label.textColor = .gray
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -54,7 +57,11 @@ final class PhotoGalleryViewController: UIViewController {
         button.layer.masksToBounds = true
         button.layer.cornerRadius = 8
         button.backgroundColor = Theme.navigationBackground
-        button.addTarget(self, action: #selector(openPhotoGallery), for: .touchUpInside)
+        button.addTarget(
+            self,
+            action: #selector(openPhotoGallery),
+            for: .touchUpInside
+        )
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -64,7 +71,11 @@ final class PhotoGalleryViewController: UIViewController {
         button.setImage(UIImage(named: "icons8-disc-64"), for: .normal)
         button.layer.cornerRadius = 8
         button.layer.masksToBounds = true
-        button.addTarget(self, action: #selector(saveImage), for: .touchUpInside)
+        button.addTarget(
+            self,
+            action: #selector(saveImage),
+            for: .touchUpInside
+        )
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -80,7 +91,11 @@ final class PhotoGalleryViewController: UIViewController {
     private lazy var filterSwitch: UISwitch = {
         let filterSwitch = UISwitch()
         filterSwitch.isOn = false
-        filterSwitch.addTarget(self, action: #selector(toggleFilter), for: .valueChanged)
+        filterSwitch.addTarget(
+            self,
+            action: #selector(toggleFilter),
+            for: .valueChanged
+        )
         filterSwitch.translatesAutoresizingMaskIntoConstraints = false
         filterSwitch.isHidden = true
         return filterSwitch
@@ -126,7 +141,7 @@ final class PhotoGalleryViewController: UIViewController {
         view.backgroundColor = Theme.backgroundPrimary
         view.addSubviews(
             addPhotoLabel,
-                         addButton,
+            addButton,
             activityIndicator,
             filterSwitch,
             originalLabel,
@@ -169,7 +184,7 @@ final class PhotoGalleryViewController: UIViewController {
         let imageSize = image.size
         
         guard imageSize.width > 0, imageSize.height > 0 else {
-            print("Ошибка: некорректные размеры изображения")
+            print("Error: incorrect size")
             return
         }
         
@@ -223,6 +238,7 @@ final class PhotoGalleryViewController: UIViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isBlackAndWhite in
                 self?.filterSwitch.isOn = isBlackAndWhite
+                self?.filterSwitch.isEnabled = true
             }
             .store(in: &cancellables)
     }
@@ -255,7 +271,8 @@ final class PhotoGalleryViewController: UIViewController {
     }
     
     @objc private func toggleFilter() {
-        viewModel.toggleBlackAndWhite()
+        filterSwitch.isEnabled = false
+        self.viewModel.toggleBlackAndWhite()
     }
     
     @objc private func saveImage() {
@@ -273,7 +290,6 @@ final class PhotoGalleryViewController: UIViewController {
     }
 
     @objc private func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
-
         view.isUserInteractionEnabled = true
 
         if let error = error {
@@ -304,7 +320,7 @@ extension PhotoGalleryViewController: PHPickerViewControllerDelegate {
         
         result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (image, error) in
             if let error = error {
-                print("Ошибка загрузки изображения: \(error.localizedDescription)")
+                print("Error load photo: \(error.localizedDescription)")
                 return
             }
             
