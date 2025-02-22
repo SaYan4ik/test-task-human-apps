@@ -25,7 +25,7 @@ final class PhotoGalleryViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.borderWidth = 2
         view.layer.borderColor = UIColor.yellow.cgColor
-        view.clipsToBounds = true
+        view.clipsToBounds = false
         return view
     }()
     
@@ -70,6 +70,14 @@ final class PhotoGalleryViewController: UIViewController {
         button.addTarget(self, action: #selector(saveImage), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
+    }()
+    
+    private lazy var activityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.color = .white
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.hidesWhenStopped = true
+        return indicator
     }()
     
     private lazy var filterSwitch: UISwitch = {
@@ -119,7 +127,16 @@ final class PhotoGalleryViewController: UIViewController {
 // MARK: - Setup Views Methods
     private func setupViews() {
         view.backgroundColor = Theme.backgroundPrimary
-        view.addSubviews(addPhotoLabel, addButton, filterSwitch, originalLabel, wbLabel, framedView)
+        view.addSubviews(
+            addPhotoLabel,
+                         addButton,
+            activityIndicator,
+            filterSwitch,
+            originalLabel,
+            wbLabel,
+            framedView
+        )
+        view.bringSubviewToFront(activityIndicator)
         framedView.addSubview(photoImageView)
         setupConstraints()
     }
@@ -141,7 +158,10 @@ final class PhotoGalleryViewController: UIViewController {
             filterSwitch.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -26),
             
             wbLabel.leadingAnchor.constraint(equalTo: filterSwitch.trailingAnchor, constant: 10),
-            wbLabel.centerYAnchor.constraint(equalTo: filterSwitch.centerYAnchor)
+            wbLabel.centerYAnchor.constraint(equalTo: filterSwitch.centerYAnchor),
+            
+            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
         ])
     }
     
@@ -253,9 +273,36 @@ final class PhotoGalleryViewController: UIViewController {
     }
     
     @objc private func saveImage() {
-        if let image = photoImageView.image {
-            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+        guard let image = photoImageView.image else {
+            return
         }
+
+        activityIndicator.startAnimating()
+        view.isUserInteractionEnabled = false
+
+        UIImageWriteToSavedPhotosAlbum(
+            image, self,
+            #selector(image(_:didFinishSavingWithError:contextInfo:)), nil
+        )
+    }
+
+    @objc private func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
+
+        view.isUserInteractionEnabled = true
+
+        if let error = error {
+            showAlert(
+                title: "Error",
+                message: "Error during save photo: \(error.localizedDescription)"
+            )
+        } else {
+            showAlert(
+                title: "Success",
+                message: "Photo was save in gallery."
+            )
+        }
+        
+        activityIndicator.stopAnimating()
     }
     
     @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
@@ -296,7 +343,10 @@ final class PhotoGalleryViewController: UIViewController {
 
 // MARK: - PHPickerViewControllerDelegate
 extension PhotoGalleryViewController: PHPickerViewControllerDelegate {
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+    func picker(
+        _ picker: PHPickerViewController,
+        didFinishPicking results: [PHPickerResult]
+    ) {
         picker.dismiss(animated: true)
         
         guard let result = results.first else { return }

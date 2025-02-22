@@ -91,7 +91,7 @@ class TabBarController: UITabBarController {
     private func configureTabBarAppearance() {
         self.tabBar.backgroundColor = Theme.backgroundNavigationBarPrimary
         self.tabBar.tintColor = Theme.navigationBackground
-        self.tabBar.unselectedItemTintColor = UIColor.lightGray
+        self.tabBar.unselectedItemTintColor = UIColor.gray
         
         UITabBarItem.appearance().setTitleTextAttributes(
             [NSAttributedString.Key.foregroundColor: UIColor.white],
