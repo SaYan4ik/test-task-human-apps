@@ -14,10 +14,7 @@ final class PhotoGalleryViewController: UIViewController {
 // MARK: - Properties
     private let viewModel: PhotoGalleryViewModelProtocol
     private var cancellables = Set<AnyCancellable>()
-    
-    private var panGesture: UIPanGestureRecognizer?
-    private var pinchGesture: UIPinchGestureRecognizer?
-    private var rotationGesture: UIRotationGestureRecognizer?
+    private lazy var gestureHandler = GestureHandler(targetView: framedView)
     
 // MARK: - UI Elements
     private lazy var framedView: UIView = {
@@ -210,18 +207,7 @@ final class PhotoGalleryViewController: UIViewController {
     }
     
     private func setupGestures() {
-        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
-        pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinchGesture(_:)))
-        rotationGesture = UIRotationGestureRecognizer(target: self, action: #selector(handleRotationGesture(_:)))
-        
-        if let panGesture = panGesture, let pinchGesture = pinchGesture, let rotationGesture = rotationGesture {
-            framedView.addGestureRecognizer(panGesture)
-            framedView.addGestureRecognizer(pinchGesture)
-            framedView.addGestureRecognizer(rotationGesture)
-        }
-        
-        framedView.isUserInteractionEnabled = true
-        photoImageView.isUserInteractionEnabled = true
+        gestureHandler.setupGestures()
     }
     
     // MARK: - Bind ViewModel
@@ -303,41 +289,6 @@ final class PhotoGalleryViewController: UIViewController {
         }
         
         activityIndicator.stopAnimating()
-    }
-    
-    @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
-        guard let view = gesture.view else { return }
-        
-        let translation = gesture.translation(in: self.view)
-        let newCenter = CGPoint(x: view.center.x + translation.x, y: view.center.y + translation.y)
-        
-        let halfWidth = view.bounds.width / 2
-        let halfHeight = view.bounds.height / 2
-        
-        let minX = halfWidth
-        let maxX = self.view.bounds.width - halfWidth
-        let minY = halfHeight
-        let maxY = self.view.bounds.height - halfHeight
-        
-        let clampedX = max(minX, min(newCenter.x, maxX))
-        let clampedY = max(minY, min(newCenter.y, maxY))
-        
-        view.center = CGPoint(x: clampedX, y: clampedY)
-        gesture.setTranslation(.zero, in: self.view)
-    }
-    
-    @objc private func handlePinchGesture(_ gesture: UIPinchGestureRecognizer) {
-        if let view = gesture.view {
-            view.transform = view.transform.scaledBy(x: gesture.scale, y: gesture.scale)
-            gesture.scale = 1
-        }
-    }
-    
-    @objc private func handleRotationGesture(_ gesture: UIRotationGestureRecognizer) {
-        if let view = gesture.view {
-            view.transform = view.transform.rotated(by: gesture.rotation)
-            gesture.rotation = 0
-        }
     }
 }
 
